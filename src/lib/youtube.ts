@@ -45,7 +45,7 @@ export function loadYouTubeApi(): Promise<YTNamespace> {
       const s = document.createElement("script");
       s.src = "https://www.youtube.com/iframe_api";
       s.async = true;
-      s.dataset.ytApi = "1";
+      s.dataset["ytApi"] = "1";
       document.head.appendChild(s);
     }
   });
