@@ -63,6 +63,17 @@ function SocialLinks() {
   );
 }
 
+function RadioTitle() {
+  return (
+    <div className="pointer-events-none z-10 flex flex-col items-center gap-2">
+      <h2 className="font-display text-center text-[40px] font-black uppercase leading-none tracking-[0.06em] text-white drop-shadow-[0_3px_18px_rgba(0,0,0,0.85)] [text-shadow:0_2px_0_var(--accent-warm)] sm:text-[60px]">
+        Radio Cassette
+      </h2>
+      <span className="h-[2px] w-28 rounded-full bg-gradient-to-r from-transparent via-accent-warm to-transparent sm:w-36" />
+    </div>
+  );
+}
+
 function Index() {
   return (
     <main className="relative flex min-h-dvh flex-1 flex-col items-center justify-between overflow-hidden">
@@ -94,6 +105,8 @@ function Index() {
           Musical Corner, 6:40 pm. Cricket in the gully, cassettes on the counter.
         </p>
       </header>
+
+      <RadioTitle />
 
       <div className="safe-pad flex w-full justify-center pb-4">
         <Player />
