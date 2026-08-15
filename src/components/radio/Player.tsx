@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PLACEHOLDER_VIDEO_ID, PLAYLISTS, type Track } from "@/lib/tracks";
+import { PLAYLISTS, type Track } from "@/lib/tracks";
 import { formatTime, loadYouTubeApi, type YTPlayer } from "@/lib/youtube";
 import { SeekBar } from "./SeekBar";
 import { NextIcon, PauseIcon, PlayIcon, PrevIcon } from "./icons";
@@ -173,19 +173,13 @@ function Tracklist({
   playing: boolean;
   onSelect: (i: number) => void;
 }) {
-  const activeRef = useRef<HTMLLIElement | null>(null);
-
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [currentIndex]);
-
   return (
     <div className="glass-panel w-full max-w-xl overflow-hidden rounded-3xl">
-      <ul className="max-h-[46vh] scroll-p-2 overflow-y-auto overscroll-contain scroll-smooth p-1.5">
+      <ul className="max-h-[46vh] overflow-y-auto overscroll-contain p-1.5">
         {tracks.map((t, i) => {
           const active = i === currentIndex;
           return (
-            <li key={t.id} ref={active ? activeRef : undefined}>
+            <li key={t.id}>
               <button
                 type="button"
                 onClick={() => onSelect(i)}
@@ -213,13 +207,13 @@ function Tracklist({
                     {t.artist} · {t.film} ({t.year})
                   </span>
                 </span>
-                {t.videoId && t.videoId !== PLACEHOLDER_VIDEO_ID ? (
+                {t.videoId ? (
                   <span className="shrink-0 text-[10.5px] tabular-nums text-white/45">
                     {formatTime(t.duration)}
                   </span>
                 ) : (
                   <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[9.5px] tracking-wide text-white/50 uppercase">
-                    placeholder
+                    no id
                   </span>
                 )}
               </button>
@@ -247,7 +241,7 @@ export function Player() {
   const tracks = playlist.tracks;
   const track = tracks[trackIndex]!;
   const playableCount = useMemo(
-    () => tracks.filter((t) => t.videoId && t.videoId !== PLACEHOLDER_VIDEO_ID).length,
+    () => tracks.filter((t) => t.videoId).length,
     [tracks],
   );
 
@@ -467,7 +461,7 @@ export function Player() {
 
       <p className="px-4 text-center text-[10.5px] text-white/45">
         {playlist.tagline} · {playableCount} of {tracks.length} tracks wired to a
-        real upload, the rest on a placeholder ID
+        rights-holder upload
       </p>
     </div>
   );
