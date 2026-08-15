@@ -298,7 +298,7 @@ export function Player() {
   const shownDuration = duration || track.duration;
 
   return (
-    <div className="flex w-full max-w-xl flex-col items-center gap-3">
+    <div className="flex w-full max-w-xl flex-col items-center gap-2.5 sm:gap-3">
       <PlaylistTabs active={playlistIndex} onSelect={selectPlaylist} />
       <Stage mountId={MOUNT_ID} needsVideoId={!track.videoId} track={track} />
 

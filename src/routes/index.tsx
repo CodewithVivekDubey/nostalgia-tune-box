@@ -40,7 +40,7 @@ function ListenerCount() {
     <div className="glass-panel flex items-center gap-2 rounded-full px-3 py-1.5">
       <span className="h-1.5 w-1.5 rounded-full bg-accent-warm shadow-[0_0_8px_2px_var(--accent-warm)]" />
       <span className="text-[11px] font-medium tracking-[0.14em] text-white/75 uppercase tabular-nums">
-        137 listening
+        137<span className="hidden sm:inline"> listening</span>
       </span>
     </div>
   );
@@ -82,20 +82,20 @@ function Index() {
         <SocialLinks />
       </div>
 
-      <header className="safe-pad flex flex-col items-center pt-24 text-center sm:pt-28">
+      <header className="safe-pad flex flex-col items-center pt-14 text-center sm:pt-28">
         <img
           src={wordmark.url}
           alt="Radio Cassette"
-          className="w-[240px] max-w-[70vw] self-start mix-blend-screen drop-shadow-[0_6px_24px_rgba(0,0,0,0.8)] sm:w-[320px]"
+          className="w-[190px] max-w-[70vw] self-start mix-blend-screen drop-shadow-[0_6px_24px_rgba(0,0,0,0.8)] sm:w-[320px]"
           loading="eager"
         />
         <h1 className="sr-only">Radio Cassette — nostalgia street radio</h1>
-        <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-white/60">
+        <p className="mt-1 hidden max-w-sm text-[12.5px] sm:block leading-relaxed text-white/60">
           Musical Corner, 6:40 pm. Cricket in the gully, cassettes on the counter.
         </p>
       </header>
 
-      <div className="safe-pad flex w-full justify-center pb-6">
+      <div className="safe-pad flex w-full justify-center pb-4">
         <Player />
       </div>
     </main>
