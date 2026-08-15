@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PLAYLISTS, type Track } from "@/lib/tracks";
+import { PLACEHOLDER_VIDEO_ID, PLAYLISTS, type Track } from "@/lib/tracks";
 import { formatTime, loadYouTubeApi, type YTPlayer } from "@/lib/youtube";
 import { SeekBar } from "./SeekBar";
 import { NextIcon, PauseIcon, PlayIcon, PrevIcon } from "./icons";
@@ -161,6 +161,76 @@ function Stage({
   );
 }
 
+
+function Tracklist({
+  tracks,
+  currentIndex,
+  playing,
+  onSelect,
+}: {
+  tracks: Track[];
+  currentIndex: number;
+  playing: boolean;
+  onSelect: (i: number) => void;
+}) {
+  const activeRef = useRef<HTMLLIElement | null>(null);
+
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [currentIndex]);
+
+  return (
+    <div className="glass-panel w-full max-w-xl overflow-hidden rounded-3xl">
+      <ul className="max-h-[46vh] scroll-p-2 overflow-y-auto overscroll-contain scroll-smooth p-1.5">
+        {tracks.map((t, i) => {
+          const active = i === currentIndex;
+          return (
+            <li key={t.id} ref={active ? activeRef : undefined}>
+              <button
+                type="button"
+                onClick={() => onSelect(i)}
+                aria-current={active ? "true" : undefined}
+                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition ${
+                  active ? "bg-white/12" : "hover:bg-white/8"
+                }`}
+              >
+                <span
+                  className={`w-5 shrink-0 text-[10.5px] tabular-nums ${
+                    active ? "text-accent-warm" : "text-white/40"
+                  }`}
+                >
+                  {active && playing ? "▶" : i + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={`block truncate text-[13.5px] font-medium ${
+                      active ? "text-accent-warm-soft" : "text-white"
+                    }`}
+                  >
+                    {t.title}
+                  </span>
+                  <span className="block truncate text-[11px] text-white/55">
+                    {t.artist} · {t.film} ({t.year})
+                  </span>
+                </span>
+                {t.videoId && t.videoId !== PLACEHOLDER_VIDEO_ID ? (
+                  <span className="shrink-0 text-[10.5px] tabular-nums text-white/45">
+                    {formatTime(t.duration)}
+                  </span>
+                ) : (
+                  <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[9.5px] tracking-wide text-white/50 uppercase">
+                    placeholder
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 /* ── engine ───────────────────────────────────────────────────────────── */
 
 const MOUNT_ID = "yt-stage-mount";
@@ -171,22 +241,25 @@ export function Player() {
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const playlist = PLAYLISTS[playlistIndex]!;
   const tracks = playlist.tracks;
   const track = tracks[trackIndex]!;
   const playableCount = useMemo(
-    () => tracks.filter((t) => t.videoId).length,
+    () => tracks.filter((t) => t.videoId && t.videoId !== PLACEHOLDER_VIDEO_ID).length,
     [tracks],
   );
 
   const playerRef = useRef<YTPlayer | null>(null);
   const readyRef = useRef(false);
+  const autoplayRef = useRef(false);
   const trackRef = useRef(track);
   trackRef.current = track;
 
   const go = useCallback(
     (delta: number) => {
+      autoplayRef.current = true;
       setTrackIndex((i) => {
         const len = tracks.length;
         if (len === 0) return 0;
@@ -259,7 +332,12 @@ export function Player() {
       setPosition(0);
       return;
     }
-    p.loadVideoById(track.videoId);
+    if (autoplayRef.current) {
+      p.loadVideoById(track.videoId);
+      autoplayRef.current = false;
+    } else {
+      p.cueVideoById(track.videoId);
+    }
     setPosition(0);
   }, [track.videoId, track.duration]);
 
@@ -280,8 +358,12 @@ export function Player() {
     const p = playerRef.current;
     if (!p) return;
     // Never gated behind a readiness event — always safe to call on a gesture.
-    if (playing) p.pauseVideo();
-    else p.playVideo();
+    if (playing) {
+      p.pauseVideo();
+    } else {
+      autoplayRef.current = true;
+      p.playVideo();
+    }
   }, [playing]);
 
   const seek = useCallback((seconds: number) => {
@@ -290,16 +372,54 @@ export function Player() {
   }, []);
 
   const selectPlaylist = useCallback((i: number) => {
+    autoplayRef.current = false;
     setPlaylistIndex(i);
     setTrackIndex(0);
     setPosition(0);
+    setPlaying(false);
+  }, []);
+
+  const selectTrack = useCallback((i: number) => {
+    autoplayRef.current = true;
+    setTrackIndex((prev) => {
+      // Re-picking the current track should restart it rather than no-op.
+      if (prev === i) {
+        const p = playerRef.current;
+        if (p && trackRef.current.videoId) {
+          p.seekTo(0, true);
+          p.playVideo();
+        }
+      }
+      return i;
+    });
+    setPosition(0);
+    setMenuOpen(false);
   }, []);
 
   const shownDuration = duration || track.duration;
 
   return (
     <div className="flex w-full max-w-xl flex-col items-center gap-2.5 sm:gap-3">
-      <PlaylistTabs active={playlistIndex} onSelect={selectPlaylist} />
+      <div className="flex w-full flex-wrap items-center justify-center gap-2">
+        <PlaylistTabs active={playlistIndex} onSelect={selectPlaylist} />
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-expanded={menuOpen}
+          className="glass-panel rounded-full px-3 py-2 text-[10.5px] font-medium tracking-wide text-white/75 uppercase transition hover:text-white"
+        >
+          {menuOpen ? "Hide songs" : `Songs · ${tracks.length}`}
+        </button>
+      </div>
+
+      {menuOpen ? (
+        <Tracklist
+          tracks={tracks}
+          currentIndex={trackIndex}
+          playing={playing}
+          onSelect={selectTrack}
+        />
+      ) : null}
       <Stage mountId={MOUNT_ID} needsVideoId={!track.videoId} track={track} />
 
       {/* DESKTOP — one horizontal glass pill */}
@@ -347,7 +467,7 @@ export function Player() {
 
       <p className="px-4 text-center text-[10.5px] text-white/45">
         {playlist.tagline} · {playableCount} of {tracks.length} tracks wired to a
-        rights-holder upload
+        real upload, the rest on a placeholder ID
       </p>
     </div>
   );
