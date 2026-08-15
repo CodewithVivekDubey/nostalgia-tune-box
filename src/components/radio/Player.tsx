@@ -116,7 +116,7 @@ function PlaylistTabs({
           key={pl.id}
           type="button"
           onClick={() => onSelect(i)}
-          className={`rounded-full px-2.5 py-1.5 text-[11px] whitespace-nowrap sm:px-3 sm:text-[11.5px] font-medium tracking-wide transition ${
+          className={`rounded-full px-2 py-1.5 text-[10.5px] whitespace-nowrap sm:px-3 sm:text-[11.5px] font-medium tracking-wide transition ${
             i === active
               ? "bg-accent-warm text-ink"
               : "text-white/65 hover:bg-white/10 hover:text-white"
