@@ -193,7 +193,7 @@ function Tracklist({
                     active ? "text-accent-warm" : "text-white/40"
                   }`}
                 >
-                  {active && playing ? "\u25B6" : i + 1}
+                  {active && playing ? "▶" : i + 1}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span
@@ -204,7 +204,7 @@ function Tracklist({
                     {t.title}
                   </span>
                   <span className="block truncate text-[11px] text-white/55">
-                    {t.artist} \u00b7 {t.film} ({t.year})
+                    {t.artist} · {t.film} ({t.year})
                   </span>
                 </span>
                 {t.videoId ? (
@@ -402,7 +402,7 @@ export function Player() {
           aria-expanded={menuOpen}
           className="glass-panel rounded-full px-3 py-2 text-[10.5px] font-medium tracking-wide text-white/75 uppercase transition hover:text-white"
         >
-          {menuOpen ? "Hide songs" : `Songs \u00b7 ${tracks.length}`}
+          {menuOpen ? "Hide songs" : `Songs · ${tracks.length}`}
         </button>
       </div>
 
