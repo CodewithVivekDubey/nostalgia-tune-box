@@ -110,13 +110,13 @@ function PlaylistTabs({
   onSelect: (i: number) => void;
 }) {
   return (
-    <div className="glass-panel flex items-center gap-1 rounded-full p-1">
+    <div className="glass-panel flex max-w-full items-center gap-1 rounded-full p-1">
       {PLAYLISTS.map((pl, i) => (
         <button
           key={pl.id}
           type="button"
           onClick={() => onSelect(i)}
-          className={`rounded-full px-3 py-1.5 text-[11.5px] font-medium tracking-wide transition ${
+          className={`rounded-full px-2.5 py-1.5 text-[11px] whitespace-nowrap sm:px-3 sm:text-[11.5px] font-medium tracking-wide transition ${
             i === active
               ? "bg-accent-warm text-ink"
               : "text-white/65 hover:bg-white/10 hover:text-white"

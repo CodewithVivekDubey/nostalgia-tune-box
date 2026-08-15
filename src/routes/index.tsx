@@ -86,7 +86,7 @@ function Index() {
         <img
           src={wordmark.url}
           alt="Radio Cassette"
-          className="w-[190px] max-w-[70vw] self-start mix-blend-screen drop-shadow-[0_6px_24px_rgba(0,0,0,0.8)] sm:w-[320px]"
+          className="w-[190px] max-w-[70vw] self-center mix-blend-screen drop-shadow-[0_6px_24px_rgba(0,0,0,0.8)] sm:w-[320px]"
           loading="eager"
         />
         <h1 className="sr-only">Radio Cassette — nostalgia street radio</h1>
