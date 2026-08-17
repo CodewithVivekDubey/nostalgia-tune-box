@@ -215,10 +215,6 @@ body {
   scroll-behavior: smooth;
 }
 
-@utility track-menu-item {
-  /* active state is handled by a compound class in the component */
-}
-
 @utility safe-pad {
   padding-top: max(1rem, env(safe-area-inset-top));
   padding-right: max(1rem, env(safe-area-inset-right));
