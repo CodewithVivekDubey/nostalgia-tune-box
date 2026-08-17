@@ -162,7 +162,7 @@ function Tracklist({
                 onClick={() => onSelect(i)}
                 aria-current={active ? "true" : undefined}
                 className={`track-menu-item flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition ${
-                  active ? "bg-white/12" : "hover:bg-white/8"
+                  active ? "bg-white/15" : "hover:bg-white/10"
                 }`}
               >
                 <span
