@@ -102,33 +102,6 @@ function PlayButton({
   );
 }
 
-function PlaylistTabs({
-  active,
-  onSelect,
-}: {
-  active: number;
-  onSelect: (i: number) => void;
-}) {
-  return (
-    <div className="glass-panel flex max-w-full items-center gap-1 rounded-full p-1">
-      {PLAYLISTS.map((pl, i) => (
-        <button
-          key={pl.id}
-          type="button"
-          onClick={() => onSelect(i)}
-          className={`rounded-full px-2 py-1.5 text-[10.5px] whitespace-nowrap sm:px-3 sm:text-[11.5px] font-medium tracking-wide transition ${
-            i === active
-              ? "bg-accent-warm text-ink"
-              : "text-white/65 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          {pl.name}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function Stage({
   mountId,
   needsVideoId,
@@ -161,21 +134,25 @@ function Stage({
   );
 }
 
-
 function Tracklist({
   tracks,
   currentIndex,
   playing,
   onSelect,
+  listRef,
 }: {
   tracks: Track[];
   currentIndex: number;
   playing: boolean;
   onSelect: (i: number) => void;
+  listRef: React.RefObject<HTMLUListElement | null>;
 }) {
   return (
     <div className="glass-panel w-full max-w-xl overflow-hidden rounded-3xl">
-      <ul className="max-h-[46vh] overflow-y-auto overscroll-contain p-1.5">
+      <ul
+        ref={listRef}
+        className="track-menu max-h-[46vh] overflow-y-auto overscroll-contain p-1.5"
+      >
         {tracks.map((t, i) => {
           const active = i === currentIndex;
           return (
@@ -184,8 +161,8 @@ function Tracklist({
                 type="button"
                 onClick={() => onSelect(i)}
                 aria-current={active ? "true" : undefined}
-                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition ${
-                  active ? "bg-white/12" : "hover:bg-white/8"
+                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition ${
+                  active ? "bg-white/15" : "hover:bg-white/10"
                 }`}
               >
                 <span
@@ -207,15 +184,9 @@ function Tracklist({
                     {t.artist} · {t.film} ({t.year})
                   </span>
                 </span>
-                {t.videoId ? (
-                  <span className="shrink-0 text-[10.5px] tabular-nums text-white/45">
-                    {formatTime(t.duration)}
-                  </span>
-                ) : (
-                  <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[9.5px] tracking-wide text-white/50 uppercase">
-                    no id
-                  </span>
-                )}
+                <span className="shrink-0 text-[10.5px] tabular-nums text-white/45">
+                  {formatTime(t.duration)}
+                </span>
               </button>
             </li>
           );
@@ -230,7 +201,7 @@ function Tracklist({
 const MOUNT_ID = "yt-stage-mount";
 
 export function Player() {
-  const [playlistIndex, setPlaylistIndex] = useState(0);
+  const [playlistIndex] = useState(0);
   const [trackIndex, setTrackIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0);
@@ -240,14 +211,12 @@ export function Player() {
   const playlist = PLAYLISTS[playlistIndex]!;
   const tracks = playlist.tracks;
   const track = tracks[trackIndex]!;
-  const playableCount = useMemo(
-    () => tracks.filter((t) => t.videoId).length,
-    [tracks],
-  );
+  const playableCount = useMemo(() => tracks.filter((t) => t.videoId).length, [tracks]);
 
   const playerRef = useRef<YTPlayer | null>(null);
   const readyRef = useRef(false);
   const autoplayRef = useRef(false);
+  const listRef = useRef<HTMLUListElement | null>(null);
   const trackRef = useRef(track);
   trackRef.current = track;
 
@@ -294,12 +263,9 @@ export function Player() {
               }
             },
             onError: (e: { data: number }) => {
-              // Videos get deleted or lose embed permission after ship.
               const detail = { code: e.data, videoId: trackRef.current.videoId };
               console.warn("[radio-cassette] youtube error", detail);
-              window.dispatchEvent(
-                new CustomEvent("radio-cassette:yt-error", { detail }),
-              );
+              window.dispatchEvent(new CustomEvent("radio-cassette:yt-error", { detail }));
               go(1);
             },
           },
@@ -348,10 +314,17 @@ export function Player() {
     return () => window.clearInterval(t);
   }, [playing]);
 
+  /* scroll the active track into view when the menu is open */
+  useEffect(() => {
+    if (!menuOpen) return;
+    const active = listRef.current?.querySelector('[aria-current="true"]') as HTMLElement | null;
+    if (!active) return;
+    active.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [menuOpen, trackIndex]);
+
   const toggle = useCallback(() => {
     const p = playerRef.current;
     if (!p) return;
-    // Never gated behind a readiness event — always safe to call on a gesture.
     if (playing) {
       p.pauseVideo();
     } else {
@@ -365,18 +338,9 @@ export function Player() {
     playerRef.current?.seekTo(seconds, true);
   }, []);
 
-  const selectPlaylist = useCallback((i: number) => {
-    autoplayRef.current = false;
-    setPlaylistIndex(i);
-    setTrackIndex(0);
-    setPosition(0);
-    setPlaying(false);
-  }, []);
-
   const selectTrack = useCallback((i: number) => {
     autoplayRef.current = true;
     setTrackIndex((prev) => {
-      // Re-picking the current track should restart it rather than no-op.
       if (prev === i) {
         const p = playerRef.current;
         if (p && trackRef.current.videoId) {
@@ -394,13 +358,12 @@ export function Player() {
 
   return (
     <div className="flex w-full max-w-xl flex-col items-center gap-2.5 sm:gap-3">
-      <div className="flex w-full flex-wrap items-center justify-center gap-2">
-        <PlaylistTabs active={playlistIndex} onSelect={selectPlaylist} />
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
           aria-expanded={menuOpen}
-          className="glass-panel rounded-full px-3 py-2 text-[10.5px] font-medium tracking-wide text-white/75 uppercase transition hover:text-white"
+          className="glass-panel rounded-full px-4 py-2 text-[11px] font-medium tracking-wide text-white/85 uppercase transition hover:text-white"
         >
           {menuOpen ? "Hide songs" : `Songs · ${tracks.length}`}
         </button>
@@ -412,8 +375,10 @@ export function Player() {
           currentIndex={trackIndex}
           playing={playing}
           onSelect={selectTrack}
+          listRef={listRef}
         />
       ) : null}
+
       <Stage mountId={MOUNT_ID} needsVideoId={!track.videoId} track={track} />
 
       {/* DESKTOP — one horizontal glass pill */}
@@ -460,8 +425,7 @@ export function Player() {
       </div>
 
       <p className="px-4 text-center text-[10.5px] text-white/45">
-        {playlist.tagline} · {playableCount} of {tracks.length} tracks wired to a
-        rights-holder upload
+        {playlist.tagline} · {playableCount} of {tracks.length} tracks wired
       </p>
     </div>
   );

@@ -209,9 +209,30 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
+@utility track-menu {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  scroll-behavior: smooth;
+}
+
 @utility safe-pad {
   padding-top: max(1rem, env(safe-area-inset-top));
   padding-right: max(1rem, env(safe-area-inset-right));
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
   padding-left: max(1rem, env(safe-area-inset-left));
+}
+
+/* WebKit scrollbar for the track menu */
+.track-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.track-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.track-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+.track-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
 }
