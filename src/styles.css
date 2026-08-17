@@ -225,3 +225,18 @@ body {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
   padding-left: max(1rem, env(safe-area-inset-left));
 }
+
+/* WebKit scrollbar for the track menu */
+.track-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.track-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.track-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+.track-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
